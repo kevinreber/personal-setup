@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Unique identifier for this job -->
+    <key>Label</key>
+    <string>com.personal-setup.config-backup</string>
+
+    <!-- Script to execute -->
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <!-- UPDATE THIS PATH to match your repo location -->
+        <string>$HOME/Documents/code/personal/personal-setup/shell-config/backup-configs.sh</string>
+    </array>
+
+    <!-- Run every 6 hours -->
+    <key>StartInterval</key>
+    <integer>21600</integer>
+
+    <!-- Alternative: Run at specific times (uncomment to use instead of StartInterval)
+    <key>StartCalendarInterval</key>
+    <array>
+        <dict>
+            <key>Hour</key>
+            <integer>9</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+        <dict>
+            <key>Hour</key>
+            <integer>18</integer>
+            <key>Minute</key>
+            <integer>0</integer>
+        </dict>
+    </array>
+    -->
+
+    <!-- Run immediately when loaded (catches up if Mac was asleep) -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Environment variables -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <!-- Update REPO_DIR if your repo is in a different location -->
+        <key>REPO_DIR</key>
+        <string>/Users/YOUR_USERNAME/Documents/code/personal/personal-setup</string>
+    </dict>
+
+    <!-- Log output for debugging -->
+    <key>StandardOutPath</key>
+    <string>/tmp/config-backup.stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/config-backup.stderr.log</string>
+
+    <!-- Don't run if on battery (optional - remove if you want it to run regardless) -->
+    <key>LowPriorityIO</key>
+    <true/>
+
+    <!-- Restart if the job crashes -->
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+</dict>
+</plist>
