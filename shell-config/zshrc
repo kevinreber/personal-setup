@@ -1,0 +1,237 @@
+# If you come from bash you might have to change your $PATH.
+# export PATH=$HOME/bin:/usr/local/bin:$PATH
+
+# Path to your oh-my-zsh installation.
+export ZSH="$HOME/.oh-my-zsh"
+export HIST_TIME_FORMAT="%F %T "
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
+ZSH_THEME="agnoster"
+
+# Set list of themes to pick from when loading at random
+# Setting this variable when ZSH_THEME=random will cause zsh to load
+# a theme from this variable instead of looking in $ZSH/themes/
+# If set to an empty array, this variable will have no effect.
+# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
+
+# Uncomment the following line to use case-sensitive completion.
+# CASE_SENSITIVE="true"
+
+# Uncomment the following line to use hyphen-insensitive completion.
+# Case-sensitive completion must be off. _ and - will be interchangeable.
+# HYPHEN_INSENSITIVE="true"
+
+# Uncomment one of the following lines to change the auto-update behavior
+# zstyle ':omz:update' mode disabled  # disable automatic updates
+# zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
+
+# Uncomment the following line to change how often to auto-update (in days).
+# zstyle ':omz:update' frequency 13
+
+# Uncomment the following line if pasting URLs and other text is messed up.
+# DISABLE_MAGIC_FUNCTIONS="true"
+
+# Uncomment the following line to disable colors in ls.
+# DISABLE_LS_COLORS="true"
+
+# Uncomment the following line to disable auto-setting terminal title.
+# DISABLE_AUTO_TITLE="true"
+
+# Uncomment the following line to enable command auto-correction.
+# ENABLE_CORRECTION="true"
+
+# Uncomment the following line to display red dots whilst waiting for completion.
+# You can also set it to another string to have that shown instead of the default red dots.
+# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
+# COMPLETION_WAITING_DOTS="true"
+
+# Uncomment the following line if you want to disable marking untracked files
+# under VCS as dirty. This makes repository status check for large repositories
+# much, much faster.
+# DISABLE_UNTRACKED_FILES_DIRTY="true"
+
+# Uncomment the following line if you want to change the command execution time
+# stamp shown in the history command output.
+# You can set one of the optional three formats:
+# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
+# or set a custom format using the strftime function format specifications,
+# see 'man strftime' for details.
+# HIST_STAMPS="mm/dd/yyyy"
+
+# Would you like to use another custom folder than $ZSH/custom?
+# ZSH_CUSTOM=/path/to/new-custom-folder
+
+# Which plugins would you like to load?
+# Standard plugins can be found in $ZSH/plugins/
+# Custom plugins may be added to $ZSH_CUSTOM/plugins/
+# Example format: plugins=(rails git textmate ruby lighthouse)
+# Add wisely, as too many plugins slow down shell startup.
+plugins=(
+	git
+	zsh-syntax-highlighting
+	zsh-autosuggestions
+)
+
+source $ZSH/oh-my-zsh.sh
+
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='mvim'
+# fi
+
+# Conditional to use nvim instead of vim if nvim is installed
+if command -v nvim &> /dev/null; then
+  alias vim='nvim'
+  alias vi='nvim'
+else
+  alias vim='vim'
+  alias vi='vim'
+fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
+
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+# Configs
+alias zshconfig="vim ~/.zshrc"
+alias tmuxconfig="vim ~/.tmux.conf"
+
+# Quick CD
+alias mp="cd ~/Documents/code/multiproducts"
+alias personal="cd ~/Documents/code/personal"
+
+# yarn aliases
+alias y="yarn"
+alias yi="yarn install"
+alias yst="yarn start"
+
+# Git Aliases
+alias g="git"
+alias ga="git add"
+alias gst="git status"
+alias gb="git branch"
+alias gco="git checkout"
+alias gc="git commit"
+alias gpl="git pull"
+alias gps="git push"
+alias gfo="git fetch origin"
+alias gl="git log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold cyan)%aD%C(reset) %C(bold green)(%ar)%C(reset) %C(bold cyan)(committed: %cD)%C(reset) %C(auto)%d%C(reset)%n''          %C(white)%s%C(reset)%n''          %C(dim white)- %an <%ae> %C(reset) %C(dim white)(committer: %cn <%ce>)%C(reset)'"
+alias glo="git log --oneline"
+# alias gw="git worktree"
+# Unalias gw if it exists, then define the function
+unalias gw 2>/dev/null || true
+# Git worktree wrapper with Claude Code support
+gw() {
+    # Check if first argument is "add"
+    if [[ "$1" == "add" ]]; then
+        local open_claude=false
+        local args=("$1")  # Keep the "add" command
+        local worktree_path=""
+
+        # Parse remaining arguments, skip the first "add"
+        shift
+        for arg in "$@"; do
+            if [[ "$arg" == "--cc" ]] || [[ "$arg" == "--claude-code" ]]; then
+                open_claude=true
+            else
+                args+=("$arg")
+                # Capture the worktree path (first non-flag argument after "add")
+                if [[ -z "$worktree_path" ]] && [[ "$arg" != -* ]]; then
+                    worktree_path="$arg"
+                fi
+            fi
+        done
+
+        # Run git worktree add without the custom flag
+        git worktree "${args[@]}"
+        local exit_code=$?
+
+        # If successful and -cc flag was present, open Claude Code
+        if [[ $exit_code -eq 0 ]] && [[ "$open_claude" == true ]] && [[ -n "$worktree_path" ]]; then
+            echo "Opening Claude Code in $worktree_path..."
+            (cd "$worktree_path" && claude)
+        fi
+
+        return $exit_code
+    else
+        # For all other git worktree commands, pass through directly
+        git worktree "$@"
+    fi
+}
+
+
+# TMux Aliases
+alias tns="tmux new-session -s"
+alias ta="tmux attach-session -t"
+alias tl="tmux list-sessions"
+alias tk="tmux kill-session -t"
+alias td="tmux detach"
+alias trn="tmux rename-window"
+alias tv="tmux split-window -v"
+alias th="tmux split-window -h"
+alias tnw="tmux new-window"
+alias tnext="tmux next-window"
+alias tprev="tmux previous-window"
+alias tsw="tmux select-window -t"
+alias tresize="tmux resize-pane"
+alias tsync="tmux setw synchronize-panes on"
+alias tunsync="tmux setw synchronize-panes off"
+alias tsend="tmux send-keys"
+alias tcapture="tmux capture-pane -S -"
+
+# Playwright Aliases
+alias codegen="npx playwright codegen localhost:3000"
+
+# Claude Code
+alias cc="claude"
+alias cc-settings="vi ~/.claude/settings.json"
+
+# MAC Aliases
+alias ports="sudo lsof -i -n -P | grep TCP"
+
+# VM Login Alias
+alias login="ssh kreber-ld2"
+alias login-old="ssh kreber-ld1"
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
+export PATH="/opt/homebrew/opt/mysql@8.0/bin:$PATH"
+
+export PATH=$PATH:$HOME/go/bin
+
+# export HISTTIMEFORMAT="%F %T "
+setopt EXTENDED_HISTORY
+export HIST_STAMPS="yyyy-mm-dd"
+
+. "$HOME/.local/bin/env"
+
+# Git branch aliases for cleaner output
+alias gb='git branch'
+alias gba='git branch -a | grep -v HEAD | sed "s/remotes\/origin\///" | sed "s/^[* ] //" | sort -u'
+alias gbl='git for-each-ref --sort=-committerdate refs/heads/ --format="%(refname:short) (%(committerdate:relative))"'
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
