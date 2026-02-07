@@ -29,22 +29,30 @@ Files that don't exist are skipped automatically.
 
 ## Adding More Files
 
-Edit `backup-configs.sh` and add entries to the `CONFIG_FILES` array:
+Edit `backup-configs.sh` and add entries to both arrays (keep them in sync):
 
 ```bash
-declare -A CONFIG_FILES=(
-    ["$HOME/.zshrc"]="zshrc"
-    ["$HOME/.tmux.conf"]="tmux.conf"
+CONFIG_SOURCES=(
+    "$HOME/.zshrc"
+    "$HOME/.tmux.conf"
     # Add your custom files here:
-    ["$HOME/.vimrc"]="vimrc"
-    ["$HOME/.config/starship.toml"]="starship.toml"
+    "$HOME/.vimrc"
+    "$HOME/.config/starship.toml"
+)
+
+CONFIG_DESTS=(
+    "zshrc"
+    "tmux.conf"
+    # Corresponding destination names:
+    "vimrc"
+    "starship.toml"
 )
 ```
 
 For entire directories, add them to the `CONFIG_DIRS` array:
 
 ```bash
-declare -a CONFIG_DIRS=(
+CONFIG_DIRS=(
     "$HOME/.config/nvim"
     "$HOME/.config/alacritty"
 )

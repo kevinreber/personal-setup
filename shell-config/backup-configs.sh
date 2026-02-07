@@ -20,20 +20,29 @@ CONFIG_DIR="$REPO_DIR/shell-config"
 # Log file location
 LOG_FILE="$CONFIG_DIR/.backup.log"
 
-# Files to backup (source -> destination name)
-# Add or remove files as needed
-declare -A CONFIG_FILES=(
-    ["$HOME/.zshrc"]="zshrc"
-    ["$HOME/.tmux.conf"]="tmux.conf"
-    ["$HOME/.zprofile"]="zprofile"
-    ["$HOME/.zshenv"]="zshenv"
-    ["$HOME/.aliases"]="aliases"
-    ["$HOME/.functions"]="functions"
+# Files to backup: source and destination arrays (parallel arrays for bash 3.x compatibility)
+# Add or remove files as needed - keep both arrays in sync
+CONFIG_SOURCES=(
+    "$HOME/.zshrc"
+    "$HOME/.tmux.conf"
+    "$HOME/.zprofile"
+    "$HOME/.zshenv"
+    "$HOME/.aliases"
+    "$HOME/.functions"
+)
+
+CONFIG_DESTS=(
+    "zshrc"
+    "tmux.conf"
+    "zprofile"
+    "zshenv"
+    "aliases"
+    "functions"
 )
 
 # Optional: Additional config directories to backup
 # These will be copied recursively
-declare -a CONFIG_DIRS=(
+CONFIG_DIRS=(
     # "$HOME/.config/some-tool"
 )
 
@@ -103,8 +112,9 @@ main() {
     local files_updated=0
 
     # Backup individual config files
-    for source_file in "${!CONFIG_FILES[@]}"; do
-        dest_name="${CONFIG_FILES[$source_file]}"
+    for i in "${!CONFIG_SOURCES[@]}"; do
+        source_file="${CONFIG_SOURCES[$i]}"
+        dest_name="${CONFIG_DESTS[$i]}"
         dest_file="$CONFIG_DIR/$dest_name"
 
         if [[ -f "$source_file" ]]; then
@@ -112,7 +122,7 @@ main() {
             if [[ ! -f "$dest_file" ]] || ! diff -q "$source_file" "$dest_file" > /dev/null 2>&1; then
                 cp "$source_file" "$dest_file"
                 log_success "Updated: $dest_name"
-                ((files_updated++))
+                files_updated=$((files_updated + 1))
             else
                 log "No changes: $dest_name"
             fi
@@ -131,14 +141,14 @@ main() {
             if command -v rsync &> /dev/null; then
                 if rsync -a --checksum --delete "$source_dir/" "$dest_dir/" 2>/dev/null; then
                     log_success "Synced directory: $dir_name"
-                    ((files_updated++))
+                    files_updated=$((files_updated + 1))
                 fi
             else
                 # Fallback to cp if rsync not available
                 rm -rf "$dest_dir"
                 cp -r "$source_dir" "$dest_dir"
                 log_success "Copied directory: $dir_name"
-                ((files_updated++))
+                files_updated=$((files_updated + 1))
             fi
         fi
     done
