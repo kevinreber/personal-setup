@@ -93,6 +93,13 @@ source $ZSH/oh-my-zsh.sh
 #   export EDITOR='mvim'
 # fi
 
+# Maintains per-session history
+setopt NO_SHARE_HISTORY
+setopt INC_APPEND_HISTORY   # write history as commands are run
+setopt EXTENDED_HISTORY     # timestamps, useful for debugging your past self
+setopt HIST_IGNORE_DUPS     # skip immediate duplicates
+setopt HIST_IGNORE_ALL_DUPS # keep history tidy across time
+
 # Conditional to use nvim instead of vim if nvim is installed
 if command -v nvim &> /dev/null; then
   alias vim='nvim'
