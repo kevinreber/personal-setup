@@ -32,6 +32,9 @@ CONFIG_SOURCES=(
     "$HOME/.zshenv"
     "$HOME/.aliases"
     "$HOME/.functions"
+    "$HOME/.gitconfig"
+    "$HOME/.gitconfig-personal"
+    "$HOME/.npmrc"
 )
 
 CONFIG_DESTS=(
@@ -41,12 +44,15 @@ CONFIG_DESTS=(
     "zshenv"
     "aliases"
     "functions"
+    "gitconfig"
+    "gitconfig-personal"
+    "npmrc"
 )
 
 # Optional: Additional config directories to backup
 # These will be copied recursively
 CONFIG_DIRS=(
-    # "$HOME/.config/some-tool"
+    "$HOME/.config/nvim"
 )
 
 # ============================================================================

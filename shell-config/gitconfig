@@ -1,0 +1,27 @@
+[user]
+	name = Kevin Reber
+	email = kreber@linkedin.com
+[core]
+	sshCommand = "ssh -i ~/.ssh/kreber_at_linkedin.com_ssh_key -o IdentitiesOnly=yes"
+[http]
+	postBuffer = 524288000
+[push]
+	default = current
+	autosetupremote = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[credential]
+	helper = store
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+# Conditional includes - use personal config for personal projects
+[includeIf "gitdir:~/Documents/code/personal/"]
+	path = ~/.gitconfig-personal
