@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit(**/*.sh)",
+        "command": "FILE=$(echo $TOOL_INPUT | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"file_path\",\"\"))' 2>/dev/null); [ -n \"$FILE\" ] && bash -n \"$FILE\" 2>&1 && echo \"✅ Shell syntax OK: $FILE\" || echo \"❌ Shell syntax error in $FILE\"",
+        "description": "Syntax-check shell scripts after editing"
+      },
+      {
+        "matcher": "Write(**/*.sh)",
+        "command": "FILE=$(echo $TOOL_INPUT | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d.get(\"file_path\",\"\"))' 2>/dev/null); [ -n \"$FILE\" ] && bash -n \"$FILE\" 2>&1 && echo \"✅ Shell syntax OK: $FILE\" || echo \"❌ Shell syntax error in $FILE\"",
+        "description": "Syntax-check new shell scripts"
+      }
+    ]
+  }
+}
