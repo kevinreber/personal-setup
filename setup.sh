@@ -169,6 +169,9 @@ restore_shell_configs() {
         "zshenv"
         "aliases"
         "functions"
+        "gitconfig"
+        "gitconfig-personal"
+        "npmrc"
     )
     local targets=(
         "$HOME/.zshrc"
@@ -177,6 +180,9 @@ restore_shell_configs() {
         "$HOME/.zshenv"
         "$HOME/.aliases"
         "$HOME/.functions"
+        "$HOME/.gitconfig"
+        "$HOME/.gitconfig-personal"
+        "$HOME/.npmrc"
     )
 
     local any_restored=0
@@ -208,6 +214,39 @@ restore_shell_configs() {
             fi
         else
             cp "$src" "$dest"
+            log_success "Restored: $dest"
+            any_restored=$((any_restored + 1))
+        fi
+    done
+
+    # Restore config directories
+    local dir_sources=("nvim")
+    local dir_targets=("$HOME/.config/nvim")
+
+    for i in "${!dir_sources[@]}"; do
+        local src="$config_dir/${dir_sources[$i]}"
+        local dest="${dir_targets[$i]}"
+
+        if [[ ! -d "$src" ]]; then
+            log_skip "${dir_sources[$i]}/ (not in repo)"
+            continue
+        fi
+
+        if [[ -d "$dest" ]]; then
+            if confirm "Overwrite existing $dest with backed-up version?"; then
+                local backup="${dest}.backup.$(date +%Y%m%d_%H%M%S)"
+                cp -r "$dest" "$backup"
+                log "  Existing directory backed up to $backup"
+                rm -rf "$dest"
+                cp -r "$src" "$dest"
+                log_success "Restored: $dest"
+                any_restored=$((any_restored + 1))
+            else
+                log_skip "$dest (kept existing)"
+            fi
+        else
+            mkdir -p "$(dirname "$dest")"
+            cp -r "$src" "$dest"
             log_success "Restored: $dest"
             any_restored=$((any_restored + 1))
         fi
