@@ -1,0 +1,126 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+**personal-setup** is a collection of bash scripts, shell configs, and documentation for bootstrapping and maintaining Kevin's Mac development environment. It serves as both documentation and automation for setting up a new machine.
+
+**Important**: This repo contains shell configuration files and scripts that affect the host system. Be careful with destructive operations and always verify changes before applying them.
+
+## Repository Purpose
+
+This is primarily a **documentation and scripting** repo — not a software project to build. There is no build step, no test suite, and no deployment pipeline. The "output" is a properly configured Mac.
+
+## Project Structure
+
+```
+personal-setup/
+├── setup.sh                     # Main bootstrap script (run on fresh Mac)
+├── README.md                    # Primary documentation
+├── github-ssh-setup/            # GitHub & SSH configuration
+│   ├── README.md
+│   ├── github-ssh-setup.md      # Detailed documentation
+│   └── setup-git-config.sh      # Automated gitconfig setup
+├── homebrew-install/            # Homebrew package management
+│   └── Brewfile                 # Managed apps/tools list (auto-updated by backup)
+└── shell-config/                # Shell config backup & sync
+    ├── README.md
+    ├── backup-configs.sh        # Backup script (copies ~/.zshrc etc. here)
+    ├── install-backup-service.sh # Installs launchd service
+    ├── com.personal-setup.config-backup.plist  # launchd config
+    ├── zshrc                    # Backed-up ~/.zshrc
+    ├── tmux.conf                # Backed-up ~/.tmux.conf
+    ├── gitconfig                # Backed-up ~/.gitconfig
+    ├── nvim/                    # Neovim config
+    └── ...
+```
+
+## What the Scripts Do
+
+### setup.sh (main bootstrap)
+
+Run on a fresh Mac to:
+1. Install Xcode Command Line Tools
+2. Install Homebrew
+3. Install all apps/tools from `homebrew-install/Brewfile`
+4. Restore shell configs (zshrc, tmux, gitconfig, etc.)
+5. Set up Git config and SSH keys
+6. Install the auto-backup launchd service
+
+**Usage**:
+```bash
+# On a fresh machine (no git/homebrew yet)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/kevinreber/personal-setup/main/setup.sh)"
+
+# Or if already cloned
+./setup.sh
+```
+
+### shell-config/backup-configs.sh
+
+Copies shell config files from `~/` to this repo, then commits and pushes. Run automatically via launchd every 6 hours.
+
+**Usage**:
+```bash
+./shell-config/backup-configs.sh
+```
+
+### shell-config/install-backup-service.sh
+
+Installs/uninstalls the launchd service that auto-runs the backup script.
+
+```bash
+./shell-config/install-backup-service.sh install
+./shell-config/install-backup-service.sh uninstall
+./shell-config/install-backup-service.sh status
+```
+
+### github-ssh-setup/setup-git-config.sh
+
+Configures Git to use different SSH keys based on directory:
+- Personal projects (`~/Documents/code/personal/`): `kevinreber1@gmail.com`
+- Work projects (`~/Documents/code/linkedin/`): `kreber@linkedin.com`
+
+## Working with this Repo
+
+### Updating Shell Configs
+
+The `.zshrc`, `.gitconfig`, etc. in `shell-config/` are **backups from the host machine**. They are NOT templates to edit directly. To update:
+
+1. Edit the file on the host machine (`~/.zshrc`)
+2. Run `./shell-config/backup-configs.sh` to sync to this repo
+3. Commit and push
+
+### Updating the Brewfile
+
+The `homebrew-install/Brewfile` is auto-updated by the backup script. To manually update:
+
+```bash
+brew bundle dump --file=homebrew-install/Brewfile --force
+```
+
+### Adding New Setup Steps
+
+Add new steps to `setup.sh`. Keep each step idempotent (safe to run multiple times).
+
+## Code Conventions
+
+### Shell Scripts
+
+- Use `#!/bin/bash` shebang (not `#!/bin/zsh`)
+- `set -e` for error-on-failure (where appropriate)
+- Check for existing tools before installing
+- Print clear status messages with `echo`
+- Use functions for logical groupings of steps
+
+### Safety
+
+- Never hardcode passwords or API keys
+- Destructive operations (rm, overwrite) should prompt for confirmation or check first
+- SSH key operations should check for existing keys before generating
+
+## Automated Hooks
+
+Claude Code hooks (`.claude/settings.json`) automatically:
+- Run `bash -n` (syntax check) after editing `.sh` files to catch syntax errors early
