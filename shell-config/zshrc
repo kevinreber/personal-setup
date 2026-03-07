@@ -188,6 +188,11 @@ gw() {
     fi
 }
 
+# eza alias if installed
+if command -v eza &>/dev/null; then
+  alias ls="eza -l --icons --grid"
+fi
+
 
 # TMux Aliases
 alias tns="tmux new-session -s"
