@@ -75,6 +75,13 @@ This repository will expand to include setup guides for:
 - System configuration
 - And more...
 
+## TODO
+
+- [ ] **Evaluate dotfile manager for new machine migration** — when getting a new Mac, consider switching from the current backup-script approach to one of:
+  - [GNU Stow](https://www.gnu.org/software/stow/) — simple symlink manager, low overhead, good for single machine
+  - [chezmoi](https://www.chezmoi.io/) — more powerful, handles templates/secrets, better for multiple machines
+  - See conversation notes: current setup is already solid; a dotfile manager is a nice-to-have, not urgent
+
 ## Usage
 
 Each directory contains:
