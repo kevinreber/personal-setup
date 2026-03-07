@@ -2,15 +2,41 @@
 
 This repository contains documentation and automation scripts for setting up a new laptop or development environment.
 
+## Fresh Machine Setup
+
+Run this single command to bootstrap everything on a new Mac:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/kevinreber/personal-setup/main/setup.sh)"
+```
+
+Or, if you already have the repo cloned:
+
+```bash
+./setup.sh
+```
+
+This will automatically:
+1. Install Xcode Command Line Tools
+2. Install Homebrew
+3. Clone this repo (if not already cloned)
+4. Install all apps and tools from the Brewfile
+5. Restore shell configs (zshrc, tmux, zprofile, etc.)
+6. Set up Git config and SSH keys
+7. Install the auto-backup launchd service
+
 ## Directory Structure
 
 ```
 personal-setup/
 ├── README.md                    # This file
+├── setup.sh                     # Bootstrap script for fresh machine setup
 ├── github-ssh-setup/           # GitHub & SSH configuration
 │   ├── README.md               # Quick start guide
 │   ├── github-ssh-setup.md     # Detailed documentation
 │   └── setup-git-config.sh     # Automated setup script
+├── homebrew-install/           # Homebrew package list
+│   └── Brewfile                # All installed apps/tools (auto-updated by backup)
 └── shell-config/               # Shell config backup & sync
     ├── README.md               # Setup instructions
     ├── backup-configs.sh       # Backup script

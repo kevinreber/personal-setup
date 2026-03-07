@@ -17,6 +17,9 @@ REPO_DIR="${REPO_DIR:-$HOME/Documents/code/personal/personal-setup}"
 # Config destination within the repo
 CONFIG_DIR="$REPO_DIR/shell-config"
 
+# Homebrew Brewfile destination within the repo
+HOMEBREW_DIR="$REPO_DIR/homebrew-install"
+
 # Log file location
 LOG_FILE="$CONFIG_DIR/.backup.log"
 
@@ -131,6 +134,25 @@ main() {
         fi
     done
 
+    # Regenerate Brewfile from currently installed packages
+    if command -v brew &> /dev/null; then
+        mkdir -p "$HOMEBREW_DIR"
+        local brewfile="$HOMEBREW_DIR/Brewfile"
+        local brewfile_tmp="$HOMEBREW_DIR/Brewfile.tmp"
+
+        brew bundle dump --force --file="$brewfile_tmp" 2>/dev/null
+        if [[ ! -f "$brewfile" ]] || ! diff -q "$brewfile_tmp" "$brewfile" > /dev/null 2>&1; then
+            mv "$brewfile_tmp" "$brewfile"
+            log_success "Updated: Brewfile"
+            files_updated=$((files_updated + 1))
+        else
+            rm -f "$brewfile_tmp"
+            log "No changes: Brewfile"
+        fi
+    else
+        log_warning "brew not found, skipping Brewfile regeneration"
+    fi
+
     # Backup config directories
     for source_dir in "${CONFIG_DIRS[@]}"; do
         if [[ -d "$source_dir" ]]; then
@@ -154,14 +176,14 @@ main() {
     done
 
     # Check if there are any changes to commit
-    if [[ -n $(git status --porcelain "$CONFIG_DIR") ]]; then
+    if [[ -n $(git status --porcelain "$CONFIG_DIR" "$HOMEBREW_DIR") ]]; then
         log "Changes detected, committing..."
 
         # Stage changes
-        git add "$CONFIG_DIR"
+        git add "$CONFIG_DIR" "$HOMEBREW_DIR"
 
         # Create commit message with summary
-        local changed_files=$(git diff --cached --name-only "$CONFIG_DIR" | xargs -I {} basename {} | tr '\n' ', ' | sed 's/,$//')
+        local changed_files=$(git diff --cached --name-only "$CONFIG_DIR" "$HOMEBREW_DIR" | xargs -I {} basename {} | tr '\n' ', ' | sed 's/,$//')
         local commit_msg="auto-backup: sync shell configs
 
 Updated files: $changed_files
