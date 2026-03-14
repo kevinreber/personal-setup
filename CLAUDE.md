@@ -96,7 +96,18 @@ Installs/manages the launchd service that auto-runs the backup script.
 
 ### github-ssh-setup/setup-git-config.sh
 
-Configures Git to use different SSH keys based on directory via `includeIf`. All values are configurable via environment variables (defaults shown):
+Configures Git with SSH keys. Two modes:
+
+```bash
+./setup-git-config.sh          # Personal SSH only (default — e.g. personal laptop)
+./setup-git-config.sh --work   # Personal + work SSH keys with directory-based switching
+```
+
+With `--work`, uses `includeIf` to switch SSH keys by directory:
+- Personal projects (`$PERSONAL_DIR`): personal email + SSH key
+- Work projects (default): work email + SSH key
+
+All values are configurable via environment variables (defaults shown):
 
 | Variable | Default |
 |----------|---------|
@@ -107,7 +118,7 @@ Configures Git to use different SSH keys based on directory via `includeIf`. All
 | `WORK_SSH_KEY` | `$HOME/.ssh/kreber_at_linkedin.com_ssh_key` |
 | `PERSONAL_DIR` | `$HOME/Documents/code/personal/` |
 
-Creates `~/.gitconfig` and `~/.gitconfig-personal`, backs up existing files before overwriting, and verifies the configuration.
+Creates `~/.gitconfig` (and `~/.gitconfig-personal` with `--work`), backs up existing files before overwriting, and verifies the configuration.
 
 ## Working with this Repo
 

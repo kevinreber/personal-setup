@@ -3,8 +3,14 @@
 ################################################################################
 # Git Configuration Setup Script
 #
-# This script automates the setup of Git configuration files to use different
-# SSH keys based on directory location:
+# Sets up Git configuration with SSH keys. Supports two modes:
+#
+#   ./setup-git-config.sh          # Personal SSH only (default)
+#   ./setup-git-config.sh --work   # Personal + work SSH keys
+#
+# Default mode uses personal email/SSH key as the global default.
+#
+# With --work, uses includeIf to switch SSH keys by directory:
 # - Personal projects (~/Documents/code/personal/): kevinreber1@gmail.com
 # - Work projects (all others): kreber@linkedin.com
 ################################################################################
@@ -17,6 +23,26 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Parse flags
+INCLUDE_WORK=false
+for arg in "$@"; do
+    case "$arg" in
+        --work) INCLUDE_WORK=true ;;
+        --help|-h)
+            echo "Usage: $0 [--work]"
+            echo ""
+            echo "  (no flags)  Set up personal SSH key only (default)"
+            echo "  --work      Also set up work SSH key with directory-based switching"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $arg"
+            echo "Usage: $0 [--work]"
+            exit 1
+            ;;
+    esac
+done
 
 # Configuration — override any of these with environment variables before running
 PERSONAL_EMAIL="${PERSONAL_EMAIL:-kevinreber1@gmail.com}"
@@ -88,6 +114,12 @@ check_ssh_permissions() {
 setup_git_configs() {
     print_header "Git Configuration Setup"
 
+    if [[ "$INCLUDE_WORK" == true ]]; then
+        print_info "Mode: personal + work"
+    else
+        print_info "Mode: personal-only (no work SSH config)"
+    fi
+
     # Step 1: Check SSH keys
     print_info "Checking SSH keys..."
 
@@ -101,18 +133,65 @@ setup_git_configs() {
         check_ssh_permissions "$PERSONAL_SSH_KEY"
     fi
 
-    if ! check_ssh_key "$WORK_SSH_KEY"; then
-        work_key_exists=false
-        print_warning "Work SSH key not found. You'll need to generate or copy it."
-    else
-        check_ssh_permissions "$WORK_SSH_KEY"
+    if [[ "$INCLUDE_WORK" == true ]]; then
+        if ! check_ssh_key "$WORK_SSH_KEY"; then
+            work_key_exists=false
+            print_warning "Work SSH key not found. You'll need to generate or copy it."
+        else
+            check_ssh_permissions "$WORK_SSH_KEY"
+        fi
     fi
 
-    # Step 2: Create ~/.gitconfig-personal
-    print_info "\nCreating ~/.gitconfig-personal..."
-    backup_file "$HOME/.gitconfig-personal"
+    if [[ "$INCLUDE_WORK" != true ]]; then
+        # Personal-only: create a single .gitconfig with personal as default
+        print_info "\nCreating ~/.gitconfig (personal-only)..."
 
-    cat > "$HOME/.gitconfig-personal" << EOF
+        if [ -f "$HOME/.gitconfig" ]; then
+            backup_file "$HOME/.gitconfig"
+        fi
+
+        cat > "$HOME/.gitconfig" << EOF
+[user]
+	name = $USER_NAME
+	email = $PERSONAL_EMAIL
+
+[core]
+	sshCommand = "ssh -i $PERSONAL_SSH_KEY -o IdentitiesOnly=yes"
+
+[http]
+	postBuffer = 524288000
+
+[push]
+	default = current
+	autosetupremote = true
+
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+
+[credential]
+	helper = store
+
+[credential "https://github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+
+[credential "https://gist.github.com"]
+	helper =
+	helper = !/opt/homebrew/bin/gh auth git-credential
+EOF
+
+        print_success "Created ~/.gitconfig"
+    else
+        # Full mode: create .gitconfig-personal + .gitconfig with includeIf
+
+        # Step 2: Create ~/.gitconfig-personal
+        print_info "\nCreating ~/.gitconfig-personal..."
+        backup_file "$HOME/.gitconfig-personal"
+
+        cat > "$HOME/.gitconfig-personal" << EOF
 # Personal Git configuration
 # This config is automatically loaded for repositories under $PERSONAL_DIR
 
@@ -124,44 +203,44 @@ setup_git_configs() {
 	sshCommand = "ssh -i $PERSONAL_SSH_KEY -o IdentitiesOnly=yes"
 EOF
 
-    print_success "Created ~/.gitconfig-personal"
+        print_success "Created ~/.gitconfig-personal"
 
-    # Step 3: Update or create ~/.gitconfig
-    print_info "\nUpdating ~/.gitconfig..."
+        # Step 3: Update or create ~/.gitconfig
+        print_info "\nUpdating ~/.gitconfig..."
 
-    if [ -f "$HOME/.gitconfig" ]; then
-        # Check if conditional include already exists
-        if grep -q "includeIf.*gitdir:${PERSONAL_DIR}" "$HOME/.gitconfig"; then
-            print_info "Conditional include already exists in ~/.gitconfig"
-        else
-            print_info "Adding conditional include to existing ~/.gitconfig"
-            backup_file "$HOME/.gitconfig"
+        if [ -f "$HOME/.gitconfig" ]; then
+            # Check if conditional include already exists
+            if grep -q "includeIf.*gitdir:${PERSONAL_DIR}" "$HOME/.gitconfig"; then
+                print_info "Conditional include already exists in ~/.gitconfig"
+            else
+                print_info "Adding conditional include to existing ~/.gitconfig"
+                backup_file "$HOME/.gitconfig"
 
-            # Add conditional include if not present
-            if ! grep -q "^\[core\]" "$HOME/.gitconfig"; then
-                # Add core section with sshCommand
-                sed -i '' '/^\[user\]/a\
+                # Add conditional include if not present
+                if ! grep -q "^\[core\]" "$HOME/.gitconfig"; then
+                    # Add core section with sshCommand
+                    sed -i '' '/^\[user\]/a\
 [core]\
 	sshCommand = "ssh -i '"$WORK_SSH_KEY"' -o IdentitiesOnly=yes"
 ' "$HOME/.gitconfig"
-            elif ! grep -q "sshCommand" "$HOME/.gitconfig"; then
-                # Add sshCommand to existing core section
-                sed -i '' '/^\[core\]/a\
+                elif ! grep -q "sshCommand" "$HOME/.gitconfig"; then
+                    # Add sshCommand to existing core section
+                    sed -i '' '/^\[core\]/a\
 	sshCommand = "ssh -i '"$WORK_SSH_KEY"' -o IdentitiesOnly=yes"
 ' "$HOME/.gitconfig"
+                fi
+
+                # Add conditional include at the end
+                echo "" >> "$HOME/.gitconfig"
+                echo "# Conditional includes - use personal config for personal projects" >> "$HOME/.gitconfig"
+                echo "[includeIf \"gitdir:${PERSONAL_DIR}\"]" >> "$HOME/.gitconfig"
+                echo "	path = ~/.gitconfig-personal" >> "$HOME/.gitconfig"
+
+                print_success "Updated ~/.gitconfig with conditional include"
             fi
-
-            # Add conditional include at the end
-            echo "" >> "$HOME/.gitconfig"
-            echo "# Conditional includes - use personal config for personal projects" >> "$HOME/.gitconfig"
-            echo "[includeIf \"gitdir:${PERSONAL_DIR}\"]" >> "$HOME/.gitconfig"
-            echo "	path = ~/.gitconfig-personal" >> "$HOME/.gitconfig"
-
-            print_success "Updated ~/.gitconfig with conditional include"
-        fi
-    else
-        # Create new .gitconfig
-        cat > "$HOME/.gitconfig" << EOF
+        else
+            # Create new .gitconfig
+            cat > "$HOME/.gitconfig" << EOF
 [user]
 	name = $USER_NAME
 	email = $WORK_EMAIL
@@ -198,7 +277,8 @@ EOF
 	path = ~/.gitconfig-personal
 EOF
 
-        print_success "Created ~/.gitconfig"
+            print_success "Created ~/.gitconfig"
+        fi
     fi
 
     # Step 4: Verify setup
@@ -206,24 +286,26 @@ EOF
 
     print_info "Testing configuration..."
 
-    # Test in a work directory (parent of PERSONAL_DIR)
-    local work_dir
-    work_dir="$(dirname "$PERSONAL_DIR")"
-    if [ -d "$work_dir" ]; then
-        cd "$work_dir"
-        local work_email=$(git config user.email)
-        local work_ssh=$(git config core.sshCommand)
+    if [[ "$INCLUDE_WORK" == true ]]; then
+        # Test in a work directory (parent of PERSONAL_DIR)
+        local work_dir
+        work_dir="$(dirname "$PERSONAL_DIR")"
+        if [ -d "$work_dir" ]; then
+            cd "$work_dir"
+            local work_email=$(git config user.email)
+            local work_ssh=$(git config core.sshCommand)
 
-        if [ "$work_email" = "$WORK_EMAIL" ]; then
-            print_success "Work directory config correct: $work_email"
-        else
-            print_error "Work directory config incorrect: $work_email (expected: $WORK_EMAIL)"
-        fi
+            if [ "$work_email" = "$WORK_EMAIL" ]; then
+                print_success "Work directory config correct: $work_email"
+            else
+                print_error "Work directory config incorrect: $work_email (expected: $WORK_EMAIL)"
+            fi
 
-        if [[ "$work_ssh" == *"$(basename "$WORK_SSH_KEY")"* ]]; then
-            print_success "Work SSH key config correct"
-        else
-            print_warning "Work SSH key config: $work_ssh"
+            if [[ "$work_ssh" == *"$(basename "$WORK_SSH_KEY")"* ]]; then
+                print_success "Work SSH key config correct"
+            else
+                print_warning "Work SSH key config: $work_ssh"
+            fi
         fi
     fi
 
@@ -249,12 +331,26 @@ EOF
     # Summary
     print_header "Setup Complete!"
 
-    echo "Configuration files created:"
-    echo "  • ~/.gitconfig"
-    echo "  • ~/.gitconfig-personal"
-    echo ""
+    if [[ "$INCLUDE_WORK" != true ]]; then
+        echo "Configuration files created:"
+        echo "  • ~/.gitconfig (personal-only)"
+        echo ""
+    else
+        echo "Configuration files created:"
+        echo "  • ~/.gitconfig"
+        echo "  • ~/.gitconfig-personal"
+        echo ""
+    fi
 
-    if [ "$personal_key_exists" = false ] || [ "$work_key_exists" = false ]; then
+    local missing_keys=false
+    if [ "$personal_key_exists" = false ]; then
+        missing_keys=true
+    fi
+    if [[ "$INCLUDE_WORK" == true ]] && [ "$work_key_exists" = false ]; then
+        missing_keys=true
+    fi
+
+    if [ "$missing_keys" = true ]; then
         print_warning "Missing SSH keys detected. Next steps:"
         echo ""
         if [ "$personal_key_exists" = false ]; then
@@ -262,7 +358,7 @@ EOF
             echo "  ssh-keygen -t ed25519 -C \"$PERSONAL_EMAIL\" -f $PERSONAL_SSH_KEY"
             echo ""
         fi
-        if [ "$work_key_exists" = false ]; then
+        if [[ "$INCLUDE_WORK" == true ]] && [ "$work_key_exists" = false ]; then
             echo "  Generate/obtain work key and save to:"
             echo "  $WORK_SSH_KEY"
             echo ""
