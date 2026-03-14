@@ -16,6 +16,7 @@ This is primarily a **documentation and scripting** repo — not a software proj
 
 ```
 personal-setup/
+├── .gitignore                   # Root gitignore (OS artifacts, editor temps, .env)
 ├── CLAUDE.md                    # This file — AI assistant guidance
 ├── README.md                    # Primary documentation
 ├── setup.sh                     # Main bootstrap script (run on fresh Mac)
@@ -78,7 +79,8 @@ Copies shell config files from `~/` to this repo, regenerates the Brewfile from 
 
 **Usage**:
 ```bash
-./shell-config/backup-configs.sh
+./shell-config/backup-configs.sh           # Run backup, commit, and push
+./shell-config/backup-configs.sh --dry-run # Show what would change without modifying anything
 ```
 
 ### shell-config/install-backup-service.sh
@@ -94,9 +96,16 @@ Installs/manages the launchd service that auto-runs the backup script.
 
 ### github-ssh-setup/setup-git-config.sh
 
-Configures Git to use different SSH keys based on directory via `includeIf`:
-- Personal projects (`~/Documents/code/personal/`): `kevinreber1@gmail.com` with `~/.ssh/id_ed25519_kevinreber_personal`
-- Work projects (default): `kreber@linkedin.com` with `~/.ssh/kreber_at_linkedin.com_ssh_key`
+Configures Git to use different SSH keys based on directory via `includeIf`. All values are configurable via environment variables (defaults shown):
+
+| Variable | Default |
+|----------|---------|
+| `PERSONAL_EMAIL` | `kevinreber1@gmail.com` |
+| `WORK_EMAIL` | `kreber@linkedin.com` |
+| `USER_NAME` | `Kevin Reber` |
+| `PERSONAL_SSH_KEY` | `$HOME/.ssh/id_ed25519_kevinreber_personal` |
+| `WORK_SSH_KEY` | `$HOME/.ssh/kreber_at_linkedin.com_ssh_key` |
+| `PERSONAL_DIR` | `$HOME/Documents/code/personal/` |
 
 Creates `~/.gitconfig` and `~/.gitconfig-personal`, backs up existing files before overwriting, and verifies the configuration.
 

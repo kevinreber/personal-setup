@@ -10,6 +10,8 @@
 #   ./setup.sh
 #
 
+set -e
+
 REPO_URL="https://github.com/kevinreber/personal-setup.git"
 DEFAULT_REPO_DIR="$HOME/Documents/code/personal/personal-setup"
 
@@ -78,7 +80,17 @@ install_xcode_clt() {
     xcode-select --install 2>/dev/null || true
 
     log "Waiting for Xcode CLT installation to complete..."
-    until xcode-select -p &>/dev/null; do sleep 5; done
+    local max_wait=600  # 10 minutes
+    local waited=0
+    until xcode-select -p &>/dev/null; do
+        sleep 5
+        waited=$((waited + 5))
+        if [[ "$waited" -ge "$max_wait" ]]; then
+            log_error "Timed out waiting for Xcode CLT installation (${max_wait}s)"
+            log_error "Install manually: xcode-select --install"
+            exit 1
+        fi
+    done
     log_success "Xcode Command Line Tools installed"
 }
 

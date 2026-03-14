@@ -18,13 +18,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Configuration
-PERSONAL_EMAIL="kevinreber1@gmail.com"
-WORK_EMAIL="kreber@linkedin.com"
-USER_NAME="Kevin Reber"
-PERSONAL_SSH_KEY="~/.ssh/id_ed25519_kevinreber_personal"
-WORK_SSH_KEY="~/.ssh/kreber_at_linkedin.com_ssh_key"
-PERSONAL_DIR="~/Documents/code/personal/"
+# Configuration — override any of these with environment variables before running
+PERSONAL_EMAIL="${PERSONAL_EMAIL:-kevinreber1@gmail.com}"
+WORK_EMAIL="${WORK_EMAIL:-kreber@linkedin.com}"
+USER_NAME="${USER_NAME:-Kevin Reber}"
+PERSONAL_SSH_KEY="${PERSONAL_SSH_KEY:-$HOME/.ssh/id_ed25519_kevinreber_personal}"
+WORK_SSH_KEY="${WORK_SSH_KEY:-$HOME/.ssh/kreber_at_linkedin.com_ssh_key}"
+PERSONAL_DIR="${PERSONAL_DIR:-$HOME/Documents/code/personal/}"
 
 print_header() {
     echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
@@ -60,7 +60,7 @@ backup_file() {
 
 # Check if SSH key exists
 check_ssh_key() {
-    local key_path=$(eval echo $1)
+    local key_path="${1/#\~/$HOME}"
     if [ ! -f "$key_path" ]; then
         print_error "SSH key not found: $key_path"
         return 1
@@ -71,7 +71,7 @@ check_ssh_key() {
 
 # Check SSH key permissions
 check_ssh_permissions() {
-    local key_path=$(eval echo $1)
+    local key_path="${1/#\~/$HOME}"
     local perms=$(stat -f "%Lp" "$key_path" 2>/dev/null || echo "000")
 
     if [ "$perms" != "600" ]; then
@@ -112,16 +112,16 @@ setup_git_configs() {
     print_info "\nCreating ~/.gitconfig-personal..."
     backup_file "$HOME/.gitconfig-personal"
 
-    cat > "$HOME/.gitconfig-personal" << 'EOF'
+    cat > "$HOME/.gitconfig-personal" << EOF
 # Personal Git configuration
-# This config is automatically loaded for repositories under ~/Documents/code/personal/
+# This config is automatically loaded for repositories under $PERSONAL_DIR
 
 [user]
-	name = Kevin Reber
-	email = kevinreber1@gmail.com
+	name = $USER_NAME
+	email = $PERSONAL_EMAIL
 
 [core]
-	sshCommand = "ssh -i ~/.ssh/id_ed25519_kevinreber_personal -o IdentitiesOnly=yes"
+	sshCommand = "ssh -i $PERSONAL_SSH_KEY -o IdentitiesOnly=yes"
 EOF
 
     print_success "Created ~/.gitconfig-personal"
@@ -131,7 +131,7 @@ EOF
 
     if [ -f "$HOME/.gitconfig" ]; then
         # Check if conditional include already exists
-        if grep -q "includeIf.*gitdir:~/Documents/code/personal/" "$HOME/.gitconfig"; then
+        if grep -q "includeIf.*gitdir:${PERSONAL_DIR}" "$HOME/.gitconfig"; then
             print_info "Conditional include already exists in ~/.gitconfig"
         else
             print_info "Adding conditional include to existing ~/.gitconfig"
@@ -142,32 +142,32 @@ EOF
                 # Add core section with sshCommand
                 sed -i '' '/^\[user\]/a\
 [core]\
-	sshCommand = "ssh -i ~/.ssh/kreber_at_linkedin.com_ssh_key -o IdentitiesOnly=yes"
+	sshCommand = "ssh -i '"$WORK_SSH_KEY"' -o IdentitiesOnly=yes"
 ' "$HOME/.gitconfig"
             elif ! grep -q "sshCommand" "$HOME/.gitconfig"; then
                 # Add sshCommand to existing core section
                 sed -i '' '/^\[core\]/a\
-	sshCommand = "ssh -i ~/.ssh/kreber_at_linkedin.com_ssh_key -o IdentitiesOnly=yes"
+	sshCommand = "ssh -i '"$WORK_SSH_KEY"' -o IdentitiesOnly=yes"
 ' "$HOME/.gitconfig"
             fi
 
             # Add conditional include at the end
             echo "" >> "$HOME/.gitconfig"
             echo "# Conditional includes - use personal config for personal projects" >> "$HOME/.gitconfig"
-            echo "[includeIf \"gitdir:~/Documents/code/personal/\"]" >> "$HOME/.gitconfig"
+            echo "[includeIf \"gitdir:${PERSONAL_DIR}\"]" >> "$HOME/.gitconfig"
             echo "	path = ~/.gitconfig-personal" >> "$HOME/.gitconfig"
 
             print_success "Updated ~/.gitconfig with conditional include"
         fi
     else
         # Create new .gitconfig
-        cat > "$HOME/.gitconfig" << 'EOF'
+        cat > "$HOME/.gitconfig" << EOF
 [user]
-	name = Kevin Reber
-	email = kreber@linkedin.com
+	name = $USER_NAME
+	email = $WORK_EMAIL
 
 [core]
-	sshCommand = "ssh -i ~/.ssh/kreber_at_linkedin.com_ssh_key -o IdentitiesOnly=yes"
+	sshCommand = "ssh -i $WORK_SSH_KEY -o IdentitiesOnly=yes"
 
 [http]
 	postBuffer = 524288000
@@ -194,7 +194,7 @@ EOF
 	helper = !/opt/homebrew/bin/gh auth git-credential
 
 # Conditional includes - use personal config for personal projects
-[includeIf "gitdir:~/Documents/code/personal/"]
+[includeIf "gitdir:${PERSONAL_DIR}"]
 	path = ~/.gitconfig-personal
 EOF
 
@@ -206,9 +206,11 @@ EOF
 
     print_info "Testing configuration..."
 
-    # Test in a work directory
-    if [ -d "$HOME/Documents/code" ]; then
-        cd "$HOME/Documents/code"
+    # Test in a work directory (parent of PERSONAL_DIR)
+    local work_dir
+    work_dir="$(dirname "$PERSONAL_DIR")"
+    if [ -d "$work_dir" ]; then
+        cd "$work_dir"
         local work_email=$(git config user.email)
         local work_ssh=$(git config core.sshCommand)
 
@@ -218,7 +220,7 @@ EOF
             print_error "Work directory config incorrect: $work_email (expected: $WORK_EMAIL)"
         fi
 
-        if [[ "$work_ssh" == *"kreber_at_linkedin.com_ssh_key"* ]]; then
+        if [[ "$work_ssh" == *"$(basename "$WORK_SSH_KEY")"* ]]; then
             print_success "Work SSH key config correct"
         else
             print_warning "Work SSH key config: $work_ssh"
@@ -226,8 +228,8 @@ EOF
     fi
 
     # Test in a personal directory (if exists)
-    if [ -d "$HOME/Documents/code/personal" ]; then
-        cd "$HOME/Documents/code/personal"
+    if [ -d "$PERSONAL_DIR" ]; then
+        cd "$PERSONAL_DIR"
         local personal_email=$(git config user.email)
         local personal_ssh=$(git config core.sshCommand)
 
@@ -237,7 +239,7 @@ EOF
             print_error "Personal directory config incorrect: $personal_email (expected: $PERSONAL_EMAIL)"
         fi
 
-        if [[ "$personal_ssh" == *"id_ed25519_kevinreber_personal"* ]]; then
+        if [[ "$personal_ssh" == *"$(basename "$PERSONAL_SSH_KEY")"* ]]; then
             print_success "Personal SSH key config correct"
         else
             print_warning "Personal SSH key config: $personal_ssh"
@@ -257,12 +259,12 @@ EOF
         echo ""
         if [ "$personal_key_exists" = false ]; then
             echo "  Generate personal key:"
-            echo "  ssh-keygen -t ed25519 -C \"$PERSONAL_EMAIL\" -f ~/.ssh/id_ed25519_kevinreber_personal"
+            echo "  ssh-keygen -t ed25519 -C \"$PERSONAL_EMAIL\" -f $PERSONAL_SSH_KEY"
             echo ""
         fi
         if [ "$work_key_exists" = false ]; then
             echo "  Generate/obtain work key and save to:"
-            echo "  ~/.ssh/kreber_at_linkedin.com_ssh_key"
+            echo "  $WORK_SSH_KEY"
             echo ""
         fi
         echo "  Then add public keys to GitHub:"
