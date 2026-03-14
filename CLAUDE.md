@@ -16,37 +16,51 @@ This is primarily a **documentation and scripting** repo — not a software proj
 
 ```
 personal-setup/
-├── setup.sh                     # Main bootstrap script (run on fresh Mac)
+├── .gitignore                   # Root gitignore (OS artifacts, editor temps, .env)
+├── CLAUDE.md                    # This file — AI assistant guidance
 ├── README.md                    # Primary documentation
+├── setup.sh                     # Main bootstrap script (run on fresh Mac)
+├── .claude/
+│   ├── settings.json            # Claude Code hooks config
+│   └── agents/
+│       └── script-reviewer.md   # Custom agent for shell script review
 ├── github-ssh-setup/            # GitHub & SSH configuration
 │   ├── README.md
-│   ├── github-ssh-setup.md      # Detailed documentation
-│   └── setup-git-config.sh      # Automated gitconfig setup
+│   ├── github-ssh-setup.md      # Detailed SSH setup documentation
+│   └── setup-git-config.sh      # Automated gitconfig + SSH key setup
 ├── homebrew-install/            # Homebrew package management
 │   └── Brewfile                 # Managed apps/tools list (auto-updated by backup)
 └── shell-config/                # Shell config backup & sync
     ├── README.md
-    ├── backup-configs.sh        # Backup script (copies ~/.zshrc etc. here)
-    ├── install-backup-service.sh # Installs launchd service
-    ├── com.personal-setup.config-backup.plist  # launchd config
+    ├── .gitignore               # Ignores .backup.log
+    ├── backup-configs.sh        # Backup script (copies ~/ configs here)
+    ├── install-backup-service.sh # Installs/manages launchd service
+    ├── com.personal-setup.config-backup.plist  # launchd template
     ├── zshrc                    # Backed-up ~/.zshrc
+    ├── zprofile                 # Backed-up ~/.zprofile
     ├── tmux.conf                # Backed-up ~/.tmux.conf
     ├── gitconfig                # Backed-up ~/.gitconfig
-    ├── nvim/                    # Neovim config
-    └── ...
+    ├── gitconfig-personal       # Backed-up ~/.gitconfig-personal
+    ├── npmrc                    # Backed-up ~/.npmrc
+    └── nvim/                    # Backed-up ~/.config/nvim/
+        ├── init.lua
+        └── lazy-lock.json
 ```
 
 ## What the Scripts Do
 
 ### setup.sh (main bootstrap)
 
-Run on a fresh Mac to:
+Run on a fresh Mac. Executes 7 steps:
 1. Install Xcode Command Line Tools
 2. Install Homebrew
-3. Install all apps/tools from `homebrew-install/Brewfile`
-4. Restore shell configs (zshrc, tmux, gitconfig, etc.)
-5. Set up Git config and SSH keys
-6. Install the auto-backup launchd service
+3. Clone or update this repo (to `~/Documents/code/personal/personal-setup`)
+4. Install all apps/tools from `homebrew-install/Brewfile`
+5. Restore shell configs (zshrc, zprofile, tmux, gitconfig, npmrc, nvim, etc.)
+6. Set up Git config and SSH keys (via `setup-git-config.sh`)
+7. Install the auto-backup launchd service
+
+Each step is idempotent — skips work already done and prompts before overwriting existing files.
 
 **Usage**:
 ```bash
@@ -59,28 +73,52 @@ Run on a fresh Mac to:
 
 ### shell-config/backup-configs.sh
 
-Copies shell config files from `~/` to this repo, then commits and pushes. Run automatically via launchd every 6 hours.
+Copies shell config files from `~/` to this repo, regenerates the Brewfile from installed Homebrew packages, syncs the nvim config directory, then commits and pushes if changes are detected. Run automatically via launchd every 6 hours.
+
+**Backed-up files**: `.zshrc`, `.tmux.conf`, `.zprofile`, `.zshenv`, `.aliases`, `.functions`, `.gitconfig`, `.gitconfig-personal`, `.npmrc`, and `~/.config/nvim/` directory.
 
 **Usage**:
 ```bash
-./shell-config/backup-configs.sh
+./shell-config/backup-configs.sh           # Run backup, commit, and push
+./shell-config/backup-configs.sh --dry-run # Show what would change without modifying anything
 ```
 
 ### shell-config/install-backup-service.sh
 
-Installs/uninstalls the launchd service that auto-runs the backup script.
+Installs/manages the launchd service that auto-runs the backup script.
 
 ```bash
-./shell-config/install-backup-service.sh install
-./shell-config/install-backup-service.sh uninstall
-./shell-config/install-backup-service.sh status
+./shell-config/install-backup-service.sh install    # Install and start
+./shell-config/install-backup-service.sh uninstall  # Remove service
+./shell-config/install-backup-service.sh status     # Show status + recent logs
+./shell-config/install-backup-service.sh run        # Run backup immediately (no install)
 ```
 
 ### github-ssh-setup/setup-git-config.sh
 
-Configures Git to use different SSH keys based on directory:
-- Personal projects (`~/Documents/code/personal/`): `kevinreber1@gmail.com`
-- Work projects (`~/Documents/code/linkedin/`): `kreber@linkedin.com`
+Configures Git with SSH keys. Two modes:
+
+```bash
+./setup-git-config.sh          # Personal SSH only (default — e.g. personal laptop)
+./setup-git-config.sh --work   # Personal + work SSH keys with directory-based switching
+```
+
+With `--work`, uses `includeIf` to switch SSH keys by directory:
+- Personal projects (`$PERSONAL_DIR`): personal email + SSH key
+- Work projects (default): work email + SSH key
+
+All values are configurable via environment variables (defaults shown):
+
+| Variable | Default |
+|----------|---------|
+| `PERSONAL_EMAIL` | `kevinreber1@gmail.com` |
+| `WORK_EMAIL` | `kreber@linkedin.com` |
+| `USER_NAME` | `Kevin Reber` |
+| `PERSONAL_SSH_KEY` | `$HOME/.ssh/id_ed25519_kevinreber_personal` |
+| `WORK_SSH_KEY` | `$HOME/.ssh/kreber_at_linkedin.com_ssh_key` |
+| `PERSONAL_DIR` | `$HOME/Documents/code/personal/` |
+
+Creates `~/.gitconfig` (and `~/.gitconfig-personal` with `--work`), backs up existing files before overwriting, and verifies the configuration.
 
 ## Working with this Repo
 
@@ -111,16 +149,25 @@ Add new steps to `setup.sh`. Keep each step idempotent (safe to run multiple tim
 - Use `#!/bin/bash` shebang (not `#!/bin/zsh`)
 - `set -e` for error-on-failure (where appropriate)
 - Check for existing tools before installing
-- Print clear status messages with `echo`
+- Print clear status messages with colored output helpers (`log`, `log_success`, `log_warning`, `log_error`)
 - Use functions for logical groupings of steps
+- Use `$HOME` instead of `~` in scripts (safer expansion)
+- Quote all variable expansions (e.g., `"$HOME/.zshrc"` not `$HOME/.zshrc`)
 
 ### Safety
 
 - Never hardcode passwords or API keys
 - Destructive operations (rm, overwrite) should prompt for confirmation or check first
+- Back up existing files before overwriting (timestamped `.backup.*` files)
 - SSH key operations should check for existing keys before generating
 
-## Automated Hooks
+## Automated Hooks and Agents
 
-Claude Code hooks (`.claude/settings.json`) automatically:
-- Run `bash -n` (syntax check) after editing `.sh` files to catch syntax errors early
+### Claude Code Hooks
+
+Configured in `.claude/settings.json`. Automatically run after editing or writing `.sh` files:
+- `bash -n` syntax check on any shell script modified via the Edit or Write tools
+
+### Custom Agents
+
+- **script-reviewer** (`.claude/agents/script-reviewer.md`): Reviews shell scripts for safety, idempotency, correctness, and common issues. Use when reviewing changes to any `.sh` files in this repo.

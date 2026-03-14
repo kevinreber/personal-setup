@@ -8,6 +8,15 @@
 set -e
 
 # ============================================================================
+# Options
+# ============================================================================
+
+DRY_RUN=false
+if [[ "${1:-}" == "--dry-run" ]]; then
+    DRY_RUN=true
+fi
+
+# ============================================================================
 # Configuration
 # ============================================================================
 
@@ -103,7 +112,11 @@ log_error() {
 # ============================================================================
 
 main() {
-    log "Starting config backup..."
+    if [[ "$DRY_RUN" == true ]]; then
+        log "Starting config backup (DRY RUN — no changes will be made)..."
+    else
+        log "Starting config backup..."
+    fi
 
     # Ensure we're in the repo directory
     if [[ ! -d "$REPO_DIR/.git" ]]; then
@@ -115,7 +128,9 @@ main() {
     cd "$REPO_DIR"
 
     # Ensure config directory exists
-    mkdir -p "$CONFIG_DIR"
+    if [[ "$DRY_RUN" != true ]]; then
+        mkdir -p "$CONFIG_DIR"
+    fi
 
     # Track if any files were updated
     local files_updated=0
@@ -129,8 +144,12 @@ main() {
         if [[ -f "$source_file" ]]; then
             # Check if file is different or doesn't exist in repo
             if [[ ! -f "$dest_file" ]] || ! diff -q "$source_file" "$dest_file" > /dev/null 2>&1; then
-                cp "$source_file" "$dest_file"
-                log_success "Updated: $dest_name"
+                if [[ "$DRY_RUN" == true ]]; then
+                    log_success "Would update: $dest_name"
+                else
+                    cp "$source_file" "$dest_file"
+                    log_success "Updated: $dest_name"
+                fi
                 files_updated=$((files_updated + 1))
             else
                 log "No changes: $dest_name"
@@ -142,18 +161,24 @@ main() {
 
     # Regenerate Brewfile from currently installed packages
     if command -v brew &> /dev/null; then
-        mkdir -p "$HOMEBREW_DIR"
+        if [[ "$DRY_RUN" != true ]]; then
+            mkdir -p "$HOMEBREW_DIR"
+        fi
         local brewfile="$HOMEBREW_DIR/Brewfile"
         local brewfile_tmp="$HOMEBREW_DIR/Brewfile.tmp"
 
-        brew bundle dump --force --file="$brewfile_tmp" 2>/dev/null
-        if [[ ! -f "$brewfile" ]] || ! diff -q "$brewfile_tmp" "$brewfile" > /dev/null 2>&1; then
-            mv "$brewfile_tmp" "$brewfile"
-            log_success "Updated: Brewfile"
-            files_updated=$((files_updated + 1))
+        if [[ "$DRY_RUN" == true ]]; then
+            log "Would regenerate: Brewfile"
         else
-            rm -f "$brewfile_tmp"
-            log "No changes: Brewfile"
+            brew bundle dump --force --file="$brewfile_tmp" 2>/dev/null
+            if [[ ! -f "$brewfile" ]] || ! diff -q "$brewfile_tmp" "$brewfile" > /dev/null 2>&1; then
+                mv "$brewfile_tmp" "$brewfile"
+                log_success "Updated: Brewfile"
+                files_updated=$((files_updated + 1))
+            else
+                rm -f "$brewfile_tmp"
+                log "No changes: Brewfile"
+            fi
         fi
     else
         log_warning "brew not found, skipping Brewfile regeneration"
@@ -165,21 +190,35 @@ main() {
             dir_name=$(basename "$source_dir")
             dest_dir="$CONFIG_DIR/$dir_name"
 
-            # Use rsync for directory sync (more efficient)
-            if command -v rsync &> /dev/null; then
-                if rsync -a --checksum --delete "$source_dir/" "$dest_dir/" 2>/dev/null; then
-                    log_success "Synced directory: $dir_name"
+            if [[ "$DRY_RUN" == true ]]; then
+                log_success "Would sync directory: $dir_name"
+                files_updated=$((files_updated + 1))
+            else
+                # Use rsync for directory sync (more efficient)
+                if command -v rsync &> /dev/null; then
+                    if rsync -a --checksum --delete "$source_dir/" "$dest_dir/" 2>/dev/null; then
+                        log_success "Synced directory: $dir_name"
+                        files_updated=$((files_updated + 1))
+                    fi
+                else
+                    # Fallback to cp if rsync not available
+                    rm -rf "$dest_dir"
+                    cp -r "$source_dir" "$dest_dir"
+                    log_success "Copied directory: $dir_name"
                     files_updated=$((files_updated + 1))
                 fi
-            else
-                # Fallback to cp if rsync not available
-                rm -rf "$dest_dir"
-                cp -r "$source_dir" "$dest_dir"
-                log_success "Copied directory: $dir_name"
-                files_updated=$((files_updated + 1))
             fi
         fi
     done
+
+    if [[ "$DRY_RUN" == true ]]; then
+        if [[ "$files_updated" -gt 0 ]]; then
+            log_success "Dry run complete: $files_updated file(s) would be updated"
+        else
+            log "Dry run complete: no changes detected"
+        fi
+        return
+    fi
 
     # Check if there are any changes to commit
     if [[ -n $(git status --porcelain "$CONFIG_DIR" "$HOMEBREW_DIR") ]]; then

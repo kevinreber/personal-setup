@@ -55,6 +55,11 @@ install_service() {
         launchctl unload "$PLIST_DEST" 2>/dev/null || true
     fi
 
+    # Ensure log directory exists with private permissions
+    local log_dir="$HOME/.personal-setup"
+    mkdir -p "$log_dir"
+    chmod 700 "$log_dir"
+
     # Copy and customize plist
     echo "Configuring service for your system..."
     sed -e "s|\$HOME|$HOME|g" \
@@ -81,8 +86,8 @@ install_service() {
     echo "  - Every 6 hours thereafter"
     echo
     echo "Log files:"
-    echo "  - stdout: /tmp/config-backup.stdout.log"
-    echo "  - stderr: /tmp/config-backup.stderr.log"
+    echo "  - stdout: $HOME/.personal-setup/config-backup.stdout.log"
+    echo "  - stderr: $HOME/.personal-setup/config-backup.stderr.log"
     echo "  - backup: $repo_path/shell-config/.backup.log"
     echo
     echo "To check status: $0 status"
@@ -102,6 +107,13 @@ uninstall_service() {
         # Remove the plist
         echo "Removing plist..."
         rm "$PLIST_DEST"
+
+        # Clean up log files
+        echo "Cleaning up log files..."
+        rm -f "$HOME/.personal-setup/config-backup.stdout.log" \
+              "$HOME/.personal-setup/config-backup.stderr.log"
+        # Remove legacy log files from /tmp if they exist
+        rm -f /tmp/config-backup.stdout.log /tmp/config-backup.stderr.log
 
         echo
         echo -e "${GREEN}✓ Service uninstalled successfully!${NC}"
