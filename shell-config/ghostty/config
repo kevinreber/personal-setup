@@ -1,0 +1,9 @@
+# Treat Option key as Alt/Meta so tmux M- bindings work (e.g. M-Left for window navigation)
+macos-option-as-alt = true
+
+# Clipboard
+clipboard-read = allow
+clipboard-write = allow
+clipboard-trim-trailing-spaces = true
+copy-on-select = clipboard
+
