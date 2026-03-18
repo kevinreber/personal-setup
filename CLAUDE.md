@@ -75,7 +75,7 @@ Each step is idempotent — skips work already done and prompts before overwriti
 
 Copies shell config files from `~/` to this repo, regenerates the Brewfile from installed Homebrew packages, syncs the nvim config directory, then commits and pushes if changes are detected. Run automatically via launchd every 6 hours.
 
-**Backed-up files**: `.zshrc`, `.tmux.conf`, `.zprofile`, `.zshenv`, `.aliases`, `.functions`, `.gitconfig`, `.gitconfig-personal`, `.npmrc`, and `~/.config/nvim/` directory.
+**Backed-up files**: `.zshrc`, `.tmux.conf`, `.zprofile`, `.zshenv`, `.aliases`, `.functions`, `.gitconfig`, `.gitconfig-personal`, `.npmrc`, `~/.config/nvim/` directory, `~/.config/raycast/scripts/` directory, and `~/.config/ghostty/` directory.
 
 **Usage**:
 ```bash

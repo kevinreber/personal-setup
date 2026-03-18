@@ -62,6 +62,8 @@ CONFIG_DESTS=(
 # These will be copied recursively
 CONFIG_DIRS=(
     "$HOME/.config/nvim"
+    "$HOME/.config/raycast/scripts"
+    "$HOME/.config/ghostty"
 )
 
 # ============================================================================
@@ -187,13 +189,19 @@ main() {
     # Backup config directories
     for source_dir in "${CONFIG_DIRS[@]}"; do
         if [[ -d "$source_dir" ]]; then
-            dir_name=$(basename "$source_dir")
+            # Preserve relative path under ~/.config/ (e.g. raycast/scripts), else use basename
+            if [[ "$source_dir" == "$HOME/.config/"* ]]; then
+                dir_name="${source_dir#$HOME/.config/}"
+            else
+                dir_name=$(basename "$source_dir")
+            fi
             dest_dir="$CONFIG_DIR/$dir_name"
 
             if [[ "$DRY_RUN" == true ]]; then
                 log_success "Would sync directory: $dir_name"
                 files_updated=$((files_updated + 1))
             else
+                mkdir -p "$dest_dir"
                 # Use rsync for directory sync (more efficient)
                 if command -v rsync &> /dev/null; then
                     if rsync -a --checksum --delete "$source_dir/" "$dest_dir/" 2>/dev/null; then

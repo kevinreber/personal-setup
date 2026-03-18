@@ -232,8 +232,8 @@ restore_shell_configs() {
     done
 
     # Restore config directories
-    local dir_sources=("nvim")
-    local dir_targets=("$HOME/.config/nvim")
+    local dir_sources=("nvim" "raycast/scripts" "ghostty")
+    local dir_targets=("$HOME/.config/nvim" "$HOME/.config/raycast/scripts" "$HOME/.config/ghostty")
 
     for i in "${!dir_sources[@]}"; do
         local src="$config_dir/${dir_sources[$i]}"
