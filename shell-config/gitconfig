@@ -23,5 +23,5 @@
 	helper = !/opt/homebrew/bin/gh auth git-credential
 
 # Conditional includes - use personal config for personal projects
-[includeIf "gitdir:~/Documents/code/personal/"]
+[includeIf "gitdir:~/Projects/"]
 	path = ~/.gitconfig-personal

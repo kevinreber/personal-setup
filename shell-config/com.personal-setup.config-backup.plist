@@ -12,7 +12,7 @@
         <string>/bin/bash</string>
         <string>-c</string>
         <!-- UPDATE THIS PATH to match your repo location -->
-        <string>$HOME/Documents/code/personal/personal-setup/shell-config/backup-configs.sh</string>
+        <string>$HOME/Projects/personal-setup/shell-config/backup-configs.sh</string>
     </array>
 
     <!-- Run every 6 hours -->
@@ -48,7 +48,7 @@
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
         <!-- Update REPO_DIR if your repo is in a different location -->
         <key>REPO_DIR</key>
-        <string>/Users/YOUR_USERNAME/Documents/code/personal/personal-setup</string>
+        <string>/Users/YOUR_USERNAME/Projects/personal-setup</string>
     </dict>
 
     <!-- Log output for debugging -->

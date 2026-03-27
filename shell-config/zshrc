@@ -127,7 +127,7 @@ alias tmuxconfig="vim ~/.tmux.conf"
 
 # Quick CD
 alias mp="cd ~/Documents/code/multiproducts"
-alias personal="cd ~/Documents/code/personal"
+alias personal="cd ~/Projects"
 
 # yarn aliases
 alias y="yarn"

@@ -36,7 +36,7 @@ If you prefer to set up manually or need more details, see the complete guide in
 ## Configuration Overview
 
 After setup:
-- **Personal projects** (`~/Documents/code/personal/`):
+- **Personal projects** (`~/Projects/`):
   - Email: `kevinreber1@gmail.com`
   - SSH Key: `~/.ssh/id_ed25519_kevinreber_personal`
 
@@ -52,7 +52,7 @@ cd ~/Documents/code/some-work-repo
 git config user.email          # Should show: kreber@linkedin.com
 
 # Test in personal directory
-cd ~/Documents/code/personal/some-personal-repo
+cd ~/Projects/some-personal-repo
 git config user.email          # Should show: kevinreber1@gmail.com
 
 # Test SSH connection

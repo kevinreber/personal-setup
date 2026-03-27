@@ -1,5 +1,5 @@
 # Personal Git configuration
-# This config is automatically loaded for repositories under ~/Documents/code/personal/
+# This config is automatically loaded for repositories under ~/Projects/
 
 [user]
 	name = Kevin Reber

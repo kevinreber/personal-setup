@@ -13,7 +13,7 @@
 set -e
 
 REPO_URL="https://github.com/kevinreber/personal-setup.git"
-DEFAULT_REPO_DIR="$HOME/Documents/code/personal/personal-setup"
+DEFAULT_REPO_DIR="$HOME/Projects/personal-setup"
 
 # If running from inside the repo, use that path; otherwise use the default
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd)"
