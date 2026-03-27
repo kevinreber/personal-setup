@@ -21,7 +21,7 @@ fi
 # ============================================================================
 
 # Repository location - UPDATE THIS to match your setup
-REPO_DIR="${REPO_DIR:-$HOME/Documents/code/personal/personal-setup}"
+REPO_DIR="${REPO_DIR:-$HOME/Projects/personal-setup}"
 
 # Config destination within the repo
 CONFIG_DIR="$REPO_DIR/shell-config"

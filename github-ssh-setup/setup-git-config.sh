@@ -11,7 +11,7 @@
 # Default mode uses personal email/SSH key as the global default.
 #
 # With --work, uses includeIf to switch SSH keys by directory:
-# - Personal projects (~/Documents/code/personal/): kevinreber1@gmail.com
+# - Personal projects (~/Projects/): kevinreber1@gmail.com
 # - Work projects (all others): kreber@linkedin.com
 ################################################################################
 
@@ -50,7 +50,7 @@ WORK_EMAIL="${WORK_EMAIL:-kreber@linkedin.com}"
 USER_NAME="${USER_NAME:-Kevin Reber}"
 PERSONAL_SSH_KEY="${PERSONAL_SSH_KEY:-$HOME/.ssh/id_ed25519_kevinreber_personal}"
 WORK_SSH_KEY="${WORK_SSH_KEY:-$HOME/.ssh/kreber_at_linkedin.com_ssh_key}"
-PERSONAL_DIR="${PERSONAL_DIR:-$HOME/Documents/code/personal/}"
+PERSONAL_DIR="${PERSONAL_DIR:-$HOME/Projects/}"
 
 print_header() {
     echo -e "\n${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"

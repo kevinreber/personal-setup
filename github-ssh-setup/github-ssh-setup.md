@@ -4,7 +4,7 @@ This guide explains how to set up Git to automatically use different SSH keys ba
 
 ## Overview
 
-- **Personal projects** (under `~/Documents/code/personal/`):
+- **Personal projects** (under `~/Projects/`):
   - Email: `kevinreber1@gmail.com`
   - SSH Key: `~/.ssh/id_ed25519_kevinreber_personal`
 
@@ -94,7 +94,7 @@ Create two Git config files:
 	helper = !/opt/homebrew/bin/gh auth git-credential
 
 # Conditional includes - use personal config for personal projects
-[includeIf "gitdir:~/Documents/code/personal/"]
+[includeIf "gitdir:~/Projects/"]
 	path = ~/.gitconfig-personal
 ```
 
@@ -102,7 +102,7 @@ Create two Git config files:
 
 ```ini
 # Personal Git configuration
-# This config is automatically loaded for repositories under ~/Documents/code/personal/
+# This config is automatically loaded for repositories under ~/Projects/
 
 [user]
 	name = Kevin Reber
@@ -145,7 +145,7 @@ Test that Git is using the correct configuration:
 
 ```bash
 # Test personal directory
-cd ~/Documents/code/personal/some-repo
+cd ~/Projects/some-repo
 git config user.email          # Should show: kevinreber1@gmail.com
 git config core.sshCommand     # Should show: ssh -i ~/.ssh/id_ed25519_kevinreber_personal -o IdentitiesOnly=yes
 
@@ -173,11 +173,11 @@ ssh -T git@github.com-linkedin
 The key to this setup is Git's `includeIf` directive in `~/.gitconfig`:
 
 ```ini
-[includeIf "gitdir:~/Documents/code/personal/"]
+[includeIf "gitdir:~/Projects/"]
 	path = ~/.gitconfig-personal
 ```
 
-When you're in any Git repository under `~/Documents/code/personal/`:
+When you're in any Git repository under `~/Projects/`:
 1. Git loads the main `~/.gitconfig` first (with LinkedIn defaults)
 2. Then Git checks the `includeIf` conditions
 3. If the condition matches, it loads `~/.gitconfig-personal`

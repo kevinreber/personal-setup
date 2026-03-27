@@ -54,7 +54,7 @@ personal-setup/
 Run on a fresh Mac. Executes 7 steps:
 1. Install Xcode Command Line Tools
 2. Install Homebrew
-3. Clone or update this repo (to `~/Documents/code/personal/personal-setup`)
+3. Clone or update this repo (to `~/Projects/personal-setup`)
 4. Install all apps/tools from `homebrew-install/Brewfile`
 5. Restore shell configs (zshrc, zprofile, tmux, gitconfig, npmrc, nvim, etc.)
 6. Set up Git config and SSH keys (via `setup-git-config.sh`)
@@ -116,7 +116,7 @@ All values are configurable via environment variables (defaults shown):
 | `USER_NAME` | `Kevin Reber` |
 | `PERSONAL_SSH_KEY` | `$HOME/.ssh/id_ed25519_kevinreber_personal` |
 | `WORK_SSH_KEY` | `$HOME/.ssh/kreber_at_linkedin.com_ssh_key` |
-| `PERSONAL_DIR` | `$HOME/Documents/code/personal/` |
+| `PERSONAL_DIR` | `$HOME/Projects/` |
 
 Creates `~/.gitconfig` (and `~/.gitconfig-personal` with `--work`), backs up existing files before overwriting, and verifies the configuration.
 

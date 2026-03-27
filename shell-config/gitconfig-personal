@@ -1,9 +1,9 @@
 # Personal Git configuration
-# This config is automatically loaded for repositories under ~/Documents/code/personal/
+# This config is automatically loaded for repositories under ~/Projects/
 
 [user]
 	name = Kevin Reber
-	email = kevin.reber@gmail.com  # Update this to your personal email
+	email = kevinreber1@gmail.com
 
 [core]
 	sshCommand = "ssh -i ~/.ssh/id_ed25519_kevinreber_personal -o IdentitiesOnly=yes"

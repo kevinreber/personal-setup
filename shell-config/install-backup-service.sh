@@ -64,7 +64,7 @@ install_service() {
     echo "Configuring service for your system..."
     sed -e "s|\$HOME|$HOME|g" \
         -e "s|YOUR_USERNAME|$username|g" \
-        -e "s|/Users/YOUR_USERNAME/Documents/code/personal/personal-setup|$repo_path|g" \
+        -e "s|/Users/YOUR_USERNAME/Projects/personal-setup|$repo_path|g" \
         "$PLIST_SOURCE" > "$PLIST_DEST"
 
     # Validate plist syntax
