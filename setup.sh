@@ -158,9 +158,9 @@ install_brew_packages() {
     log_warning "This may take a while on a fresh machine."
     echo
 
-    # --no-lock avoids a lockfile being written; --no-upgrade skips upgrading
-    # already-installed packages (just ensures everything in the Brewfile exists)
-    brew bundle install --file="$brewfile" --no-lock
+    # --no-upgrade skips upgrading already-installed packages
+    # (just ensures everything in the Brewfile exists)
+    brew bundle install --file="$brewfile"
     log_success "All Brewfile packages installed"
 }
 
