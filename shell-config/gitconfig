@@ -2,9 +2,6 @@
 	name = Kevin Reber
 	email = kevinreber1@gmail.com
 
-[core]
-	sshCommand = "ssh -i /Users/kevinreber/.ssh/id_ed25519_kevinreber_personal -o IdentitiesOnly=yes"
-
 [http]
 	postBuffer = 524288000
 
@@ -28,3 +25,5 @@
 [credential "https://gist.github.com"]
 	helper =
 	helper = !/opt/homebrew/bin/gh auth git-credential
+[url "git@github.com:"]
+	insteadOf = https://github.com/
