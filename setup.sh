@@ -171,8 +171,8 @@ install_brew_packages() {
 install_oh_my_zsh() {
     print_header "Step 5 — Oh My Zsh & Plugins"
 
-    # Install Oh My Zsh
-    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+    # Install Oh My Zsh (check for key file to handle partial installs)
+    if [[ -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]]; then
         log_success "Oh My Zsh already installed"
     else
         log "Installing Oh My Zsh..."
@@ -182,23 +182,24 @@ install_oh_my_zsh() {
         log_success "Oh My Zsh installed"
     fi
 
-    local custom_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+    # ZSH_CUSTOM is not set in bash context, so hardcode the default path
+    local custom_dir="$HOME/.oh-my-zsh/custom"
 
-    # Install zsh-syntax-highlighting
-    if [[ -d "$custom_dir/plugins/zsh-syntax-highlighting" ]]; then
+    # Install zsh-syntax-highlighting (check .git to handle partial clones)
+    if [[ -d "$custom_dir/plugins/zsh-syntax-highlighting/.git" ]]; then
         log_success "zsh-syntax-highlighting already installed"
     else
         log "Installing zsh-syntax-highlighting..."
-        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_dir/plugins/zsh-syntax-highlighting"
+        git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_dir/plugins/zsh-syntax-highlighting"
         log_success "zsh-syntax-highlighting installed"
     fi
 
-    # Install zsh-autosuggestions
-    if [[ -d "$custom_dir/plugins/zsh-autosuggestions" ]]; then
+    # Install zsh-autosuggestions (check .git to handle partial clones)
+    if [[ -d "$custom_dir/plugins/zsh-autosuggestions/.git" ]]; then
         log_success "zsh-autosuggestions already installed"
     else
         log "Installing zsh-autosuggestions..."
-        git clone https://github.com/zsh-users/zsh-autosuggestions.git "$custom_dir/plugins/zsh-autosuggestions"
+        git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions.git "$custom_dir/plugins/zsh-autosuggestions"
         log_success "zsh-autosuggestions installed"
     fi
 }
