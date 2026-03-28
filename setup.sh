@@ -224,6 +224,7 @@ restore_shell_configs() {
         "gitconfig"
         "gitconfig-personal"
         "npmrc"
+        "ssh_config"
     )
     local targets=(
         "$HOME/.zshrc"
@@ -235,6 +236,7 @@ restore_shell_configs() {
         "$HOME/.gitconfig"
         "$HOME/.gitconfig-personal"
         "$HOME/.npmrc"
+        "$HOME/.ssh/config"
     )
 
     local any_restored=0
@@ -265,7 +267,13 @@ restore_shell_configs() {
                 log_skip "$dest (kept existing)"
             fi
         else
+            mkdir -p "$(dirname "$dest")"
             cp "$src" "$dest"
+            # Set secure permissions for SSH config
+            if [[ "$dest" == *"/.ssh/"* ]]; then
+                chmod 700 "$(dirname "$dest")"
+                chmod 600 "$dest"
+            fi
             log_success "Restored: $dest"
             any_restored=$((any_restored + 1))
         fi
@@ -335,6 +343,12 @@ setup_git_config() {
 # ============================================================================
 
 check_ssh_auth() {
+    # Check if 1Password SSH agent is available
+    local op_agent_sock="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+    if [[ -S "$op_agent_sock" ]]; then
+        log_success "1Password SSH agent detected"
+    fi
+
     log "Checking GitHub SSH authentication..."
     local ssh_output
     ssh_output=$(ssh -T -o ConnectTimeout=5 -o BatchMode=yes git@github.com 2>&1 || true)
@@ -345,7 +359,11 @@ check_ssh_auth() {
     else
         log_warning "GitHub SSH auth failed — the backup service won't be able to push."
         log_warning "Output: $ssh_output"
-        log         "  Fix: generate/add your SSH key, then run: ssh -T git@github.com"
+        if [[ -S "$op_agent_sock" ]]; then
+            log "  Fix: add an SSH key in 1Password and add the public key to GitHub"
+        else
+            log "  Fix: generate/add your SSH key, then run: ssh -T git@github.com"
+        fi
         return 1
     fi
 }

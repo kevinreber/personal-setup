@@ -44,6 +44,7 @@ CONFIG_SOURCES=(
     "$HOME/.gitconfig"
     "$HOME/.gitconfig-personal"
     "$HOME/.npmrc"
+    "$HOME/.ssh/config"
 )
 
 CONFIG_DESTS=(
@@ -56,6 +57,7 @@ CONFIG_DESTS=(
     "gitconfig"
     "gitconfig-personal"
     "npmrc"
+    "ssh_config"
 )
 
 # Optional: Additional config directories to backup
