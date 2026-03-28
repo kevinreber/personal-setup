@@ -51,14 +51,15 @@ personal-setup/
 
 ### setup.sh (main bootstrap)
 
-Run on a fresh Mac. Executes 7 steps:
+Run on a fresh Mac. Executes 8 steps:
 1. Install Xcode Command Line Tools
 2. Install Homebrew
 3. Clone or update this repo (to `~/Projects/personal-setup`)
 4. Install all apps/tools from `homebrew-install/Brewfile`
-5. Restore shell configs (zshrc, zprofile, tmux, gitconfig, npmrc, nvim, etc.)
-6. Set up Git config and SSH keys (via `setup-git-config.sh`)
-7. Install the auto-backup launchd service
+5. Install Oh My Zsh + plugins (zsh-syntax-highlighting, zsh-autosuggestions)
+6. Restore shell configs (zshrc, zprofile, tmux, gitconfig, npmrc, nvim, etc.)
+7. Set up Git config and SSH keys (via `setup-git-config.sh`)
+8. Install the auto-backup launchd service
 
 Each step is idempotent — skips work already done and prompts before overwriting existing files.
 

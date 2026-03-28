@@ -165,11 +165,50 @@ install_brew_packages() {
 }
 
 # ============================================================================
-# Step 5 — Restore shell configs
+# Step 5 — Oh My Zsh + plugins
+# ============================================================================
+
+install_oh_my_zsh() {
+    print_header "Step 5 — Oh My Zsh & Plugins"
+
+    # Install Oh My Zsh
+    if [[ -d "$HOME/.oh-my-zsh" ]]; then
+        log_success "Oh My Zsh already installed"
+    else
+        log "Installing Oh My Zsh..."
+        # RUNZSH=no prevents it from launching a new zsh session
+        # KEEP_ZSHRC=yes prevents it from overwriting our backed-up .zshrc
+        RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+        log_success "Oh My Zsh installed"
+    fi
+
+    local custom_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+
+    # Install zsh-syntax-highlighting
+    if [[ -d "$custom_dir/plugins/zsh-syntax-highlighting" ]]; then
+        log_success "zsh-syntax-highlighting already installed"
+    else
+        log "Installing zsh-syntax-highlighting..."
+        git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$custom_dir/plugins/zsh-syntax-highlighting"
+        log_success "zsh-syntax-highlighting installed"
+    fi
+
+    # Install zsh-autosuggestions
+    if [[ -d "$custom_dir/plugins/zsh-autosuggestions" ]]; then
+        log_success "zsh-autosuggestions already installed"
+    else
+        log "Installing zsh-autosuggestions..."
+        git clone https://github.com/zsh-users/zsh-autosuggestions.git "$custom_dir/plugins/zsh-autosuggestions"
+        log_success "zsh-autosuggestions installed"
+    fi
+}
+
+# ============================================================================
+# Step 6 — Restore shell configs
 # ============================================================================
 
 restore_shell_configs() {
-    print_header "Step 5 — Shell Configs"
+    print_header "Step 6 — Shell Configs"
 
     local config_dir="$REPO_DIR/shell-config"
 
@@ -270,11 +309,11 @@ restore_shell_configs() {
 }
 
 # ============================================================================
-# Step 6 — Git config & SSH keys
+# Step 7 — Git config & SSH keys
 # ============================================================================
 
 setup_git_config() {
-    print_header "Step 6 — Git Configuration"
+    print_header "Step 7 — Git Configuration"
 
     local git_setup="$REPO_DIR/github-ssh-setup/setup-git-config.sh"
     if [[ ! -f "$git_setup" ]]; then
@@ -291,7 +330,7 @@ setup_git_config() {
 }
 
 # ============================================================================
-# Step 7 — Auto-backup launchd service
+# Step 8 — Auto-backup launchd service
 # ============================================================================
 
 check_ssh_auth() {
@@ -311,7 +350,7 @@ check_ssh_auth() {
 }
 
 install_backup_service() {
-    print_header "Step 7 — Auto-Backup Service"
+    print_header "Step 8 — Auto-Backup Service"
 
     local service_script="$REPO_DIR/shell-config/install-backup-service.sh"
     if [[ ! -f "$service_script" ]]; then
@@ -352,6 +391,7 @@ print_summary() {
     echo "    • Xcode Command Line Tools"
     echo "    • Homebrew + all packages from Brewfile"
     echo "    • personal-setup repo at $REPO_DIR"
+    echo "    • Oh My Zsh + plugins (syntax-highlighting, autosuggestions)"
     echo "    • Shell configs (zshrc, tmux, zprofile, etc.)"
     echo "    • Git configuration"
     echo "    • Auto-backup launchd service"
@@ -378,6 +418,7 @@ main() {
     install_homebrew
     setup_repo
     install_brew_packages
+    install_oh_my_zsh
     restore_shell_configs
     setup_git_config
     install_backup_service
