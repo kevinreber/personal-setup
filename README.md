@@ -16,10 +16,11 @@ Or, if you already have the repo cloned:
 ./setup.sh
 ```
 
-This will automatically:
+This will automatically clone the repo to `~/Projects/personal-setup` and:
+
 1. Install Xcode Command Line Tools
 2. Install Homebrew
-3. Clone this repo (if not already cloned)
+3. Clone this repo to `~/Projects/personal-setup` (if not already cloned)
 4. Install all apps and tools from the Brewfile
 5. Restore shell configs (zshrc, tmux, zprofile, etc.)
 6. Set up Git config and SSH keys
