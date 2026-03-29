@@ -237,7 +237,8 @@ export PATH=$PATH:$HOME/go/bin
 setopt EXTENDED_HISTORY
 export HIST_STAMPS="yyyy-mm-dd"
 
-. "$HOME/.local/bin/env"
+# Disabled: file no longer exists (was likely added by uv/pipx installer)
+# . "$HOME/.local/bin/env"
 
 # Git branch aliases for cleaner output
 alias gb='git branch'

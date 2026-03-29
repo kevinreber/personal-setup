@@ -17,6 +17,7 @@ brew "mosh"
 brew "mysql@8.0", restart_service: :changed, link: true
 brew "mysql@8.4"
 brew "neovim"
+brew "node"
 brew "node@20"
 brew "pytest"
 brew "rbenv"
