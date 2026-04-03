@@ -217,7 +217,17 @@ alias tcapture="tmux capture-pane -S -"
 alias codegen="npx playwright codegen localhost:3000"
 
 # Claude Code
-alias cc="claude"
+function cc() {
+  local args=()
+  for arg in "$@"; do
+    if [[ "$arg" == "--danger" ]] || [[ "$arg" == "--dsp" ]]; then
+      args+=("--dangerously-skip-permissions")
+    else
+      args+=("$arg")
+    fi
+  done
+  claude "${args[@]}"
+}
 alias cc-settings="vi ~/.claude/settings.json"
 
 # MAC Aliases
