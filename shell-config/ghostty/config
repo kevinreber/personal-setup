@@ -1,6 +1,9 @@
 # Treat Option key as Alt/Meta so tmux M- bindings work (e.g. M-Left for window navigation)
 macos-option-as-alt = true
 
+keybind = opt+cmd+left=text:\x01p
+keybind = opt+cmd+right=text:\x01n
+
 # Clipboard
 clipboard-read = allow
 clipboard-write = allow
@@ -8,4 +11,11 @@ clipboard-trim-trailing-spaces = true
 copy-on-select = clipboard
 
 # Terminal spacing
-command = TERM=xterm-256color zsh
+#command = TERM=xterm-256color zsh
+
+# Terminal Environment
+# This replaces the "TERM=..." prefix you had in the command line
+term = xterm-256color
+
+# The shell command (use an absolute path)
+command = /bin/zsh
