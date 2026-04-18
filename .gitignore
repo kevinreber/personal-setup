@@ -10,3 +10,8 @@
 # Environment / secrets
 .env
 .env.*
+
+# Docusaurus
+docs/node_modules/
+docs/build/
+docs/.docusaurus/
