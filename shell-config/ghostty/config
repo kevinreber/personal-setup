@@ -1,9 +1,17 @@
-# Treat Option key as Alt/Meta so tmux M- bindings work (e.g. M-Left for window navigation)
-macos-option-as-alt = true
 
 # Clipboard
 clipboard-read = allow
 clipboard-write = allow
 clipboard-trim-trailing-spaces = true
+
+# This is the key: If you set this, Ghostty will only perform 
+# the 'copy-on-select' action if you have a modifier key held down, 
+# or you can leave it out to stick with your current behavior.
 copy-on-select = clipboard
 
+# Add this to help with cleaner selection of text that isn't a perfect rectangle
+# It allows you to select text and have it reflow logically rather than by grid.
+# selection-paste-filter = trim-trailing-spaces
+# clipboard-trim-leading-spaces = true
+
+clipboard-trim-trailing-spaces = true
